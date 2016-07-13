@@ -1,0 +1,16 @@
+{
+  "name": "ukub-sensor-node",
+  "version": "0.0.1",
+  "bin": "./source",
+  "description": "Sensor node for ukub mission.",
+  "repository": {
+    "url": "ssh://git@github.com/openkosmosorg/ukub-sensor-node",
+    "type": "git"
+  },
+  "homepage": "https://github.com/openkosmosorg/ukub-sensor-node",
+  "license": "Apache-2.0",
+  "bin" : "./source",
+  "dependencies": {
+      "kubos-rt" : "openkosmosorg/kubos-rt#~0.0.1"
+  }
+}
