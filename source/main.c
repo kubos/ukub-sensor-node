@@ -36,7 +36,7 @@
 static inline void blink(int pin) {
     #define BLINK_MS 100
     k_gpio_write(pin, 1);
-    vTaskDelay(5);
+    vTaskDelay(1);
     k_gpio_write(pin, 0);
 }
 
@@ -47,11 +47,11 @@ void task_sensors(void *p)
     double pos_vector = 0;
     // double accel_vector = 0;
     // double magn_vector = 0;
-    // double gyro_vector = 0;
+    double gyro_vector = 0;
     // double eul_vector = 0;
     // double linear_vector = 0;
     // double gravity_vector = 0;
-    uint64_t time_ms;
+    uint32_t time_ms;
     static char msg[200];
 
     static KI2CStatus bno_stat;
@@ -59,7 +59,7 @@ void task_sensors(void *p)
     htu21d_setup();
     htu21d_reset();
     bno_stat = bno055_init(K_I2C1, OPERATION_MODE_NDOF);
-    get_position(&pos_vector);
+    // get_position(&pos_vector);
     while(1)
     {
         blink(K_LED_ORANGE);
@@ -78,13 +78,13 @@ void task_sensors(void *p)
         {
 
             blink(K_LED_ORANGE);
-            read_position(&pos_vector);
+            get_position(&pos_vector);
             // blink(K_LED_ORANGE);
             // get_data_vector(VECTOR_ACCELEROMETER, &accel_vector);
             // blink(K_LED_ORANGE);
             // get_data_vector(VECTOR_MAGNETOMETER, &magn_vector);
-            // blink(K_LED_ORANGE);
-            // get_data_vector(VECTOR_GYROSCOPE, &gyro_vector);
+            blink(K_LED_ORANGE);
+            get_data_vector(VECTOR_GYROSCOPE, &gyro_vector);
             // blink(K_LED_ORANGE);
             // get_data_vector(VECTOR_EULER, &eul_vector);
             // blink(K_LED_ORANGE);
@@ -96,8 +96,8 @@ void task_sensors(void *p)
         //     time_ms, temp, hum, pos_vector, accel_vector, magn_vector,
         //     gyro_vector, eul_vector, linear_vector, gravity_vector
         // );
-        sprintf(msg, "%d|%3.2f|%3.2f|%1.5f\r\n",
-            time_ms, temp, hum, pos_vector
+        sprintf(msg, "%d|%3.2f|%3.2f|%1.5f|%3.3f\r\n",
+            time_ms, temp, hum, pos_vector, gyro_vector
         );
         k_uart_write(K_UART_CONSOLE, msg, strlen(msg));
         blink(K_LED_RED);
