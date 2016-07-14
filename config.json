@@ -2,12 +2,19 @@
     "sensors": {
         "htu21d": {
             "i2c_bus": "K_I2C1"
+        },
+        "bno055": {
+            "i2c_bus": "K_I2C1"
         }
     },
     "hardware": {
         "console": {
             "uart": "K_UART2",
-            "baudRate": "9600"
+            "baudRate": "115200"
+        },
+        "uartDefaults": {
+            "txQueueLen": 128,
+            "rxQueueLen": 128
         }
     }
 }

@@ -29,13 +29,14 @@
 #include "kubos-core/modules/klog.h"
 
 #include "kubos-core/modules/sensors/htu21d.h"
+#include "kubos-core/modules/sensors/bno055.h"
 
 #include <csp/csp.h>
 
 static inline void blink(int pin) {
     #define BLINK_MS 100
     k_gpio_write(pin, 1);
-    vTaskDelay(50);
+    vTaskDelay(5);
     k_gpio_write(pin, 0);
 }
 
@@ -43,24 +44,64 @@ void task_sensors(void *p)
 {
     float temp = 0;
     float hum = 0;
-    uint32_t time_ms;
+    double pos_vector = 0;
+    // double accel_vector = 0;
+    // double magn_vector = 0;
+    // double gyro_vector = 0;
+    // double eul_vector = 0;
+    // double linear_vector = 0;
+    // double gravity_vector = 0;
+    uint64_t time_ms;
+    static char msg[200];
+
+    static KI2CStatus bno_stat;
+
     htu21d_setup();
     htu21d_reset();
-    static char msg[100];
-
+    bno_stat = bno055_init(K_I2C1, OPERATION_MODE_NDOF);
+    get_position(&pos_vector);
     while(1)
     {
+        blink(K_LED_ORANGE);
         time_ms = csp_get_ms();
+        blink(K_LED_ORANGE);
         temp = htu21d_read_temperature();
+        blink(K_LED_ORANGE);
         hum = htu21d_read_humidity();
-        sprintf(msg, "%d||%f||%f\r\n", time_ms, temp, hum);
+        if (bno_stat != I2C_OK)
+        {
+            blink(K_LED_RED);
+            blink(K_LED_RED);
+            bno_stat = bno055_init(K_I2C1, OPERATION_MODE_NDOF);
+        }
+        else
+        {
+
+            blink(K_LED_ORANGE);
+            read_position(&pos_vector);
+            // blink(K_LED_ORANGE);
+            // get_data_vector(VECTOR_ACCELEROMETER, &accel_vector);
+            // blink(K_LED_ORANGE);
+            // get_data_vector(VECTOR_MAGNETOMETER, &magn_vector);
+            // blink(K_LED_ORANGE);
+            // get_data_vector(VECTOR_GYROSCOPE, &gyro_vector);
+            // blink(K_LED_ORANGE);
+            // get_data_vector(VECTOR_EULER, &eul_vector);
+            // blink(K_LED_ORANGE);
+            // get_data_vector(VECTOR_LINEARACCEL, &linear_vector);
+            // blink(K_LED_ORANGE);
+            // get_data_vector(VECTOR_GRAVITY, &gravity_vector);
+        }
+        // sprintf(msg,"%d||%3.2f||%3.2f||%1.5f||%1.5f||%2.3f||%3.3f||%3.3f||%2.3f||%2.3f\r\n",
+        //     time_ms, temp, hum, pos_vector, accel_vector, magn_vector,
+        //     gyro_vector, eul_vector, linear_vector, gravity_vector
+        // );
+        sprintf(msg, "%d|%3.2f|%3.2f|%1.5f\r\n",
+            time_ms, temp, hum, pos_vector
+        );
         k_uart_write(K_UART_CONSOLE, msg, strlen(msg));
         blink(K_LED_RED);
-        vTaskDelay(1000);
-    }
-    while (1)
-    {
-        vTaskDelay(100);
+        //vTaskDelay(1000);
     }
 }
 
@@ -72,7 +113,7 @@ int main(void)
     k_gpio_init(K_LED_ORANGE, K_GPIO_OUTPUT, K_GPIO_PULL_NONE);
     k_gpio_init(K_LED_RED, K_GPIO_OUTPUT, K_GPIO_PULL_NONE);
     k_gpio_init(K_LED_BLUE, K_GPIO_OUTPUT, K_GPIO_PULL_NONE);
-    
+
     xTaskCreate(task_sensors, "sensors", configMINIMAL_STACK_SIZE * 4, NULL, 2, NULL);
 
     vTaskStartScheduler();
