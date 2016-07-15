@@ -1,0 +1,6 @@
+{
+  "build": {
+    "target": "pyboard-gcc,*",
+    "targetSetExplicitly": true
+  }
+}
