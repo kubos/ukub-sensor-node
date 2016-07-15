@@ -44,64 +44,56 @@ void task_sensors(void *p)
 {
     float temp = 0;
     float hum = 0;
-    double pos_vector = 0;
-    // double accel_vector = 0;
-    // double magn_vector = 0;
-    double gyro_vector = 0;
-    // double eul_vector = 0;
-    // double linear_vector = 0;
-    // double gravity_vector = 0;
+    bno055_quat_data_t quat_data;
+    bno055_vector_data_t eul_vector;
     uint32_t time_ms;
     static char msg[200];
+    uint8_t count = 1;
 
     static KI2CStatus bno_stat;
 
     htu21d_setup();
     htu21d_reset();
-    bno_stat = bno055_init(K_I2C1, OPERATION_MODE_NDOF);
+    bno_stat = bno055_setup(OPERATION_MODE_NDOF);
     // get_position(&pos_vector);
+    blink(K_LED_ORANGE);
+    temp = htu21d_read_temperature();
+    blink(K_LED_ORANGE);
+    hum = htu21d_read_humidity();
+
     while(1)
     {
         blink(K_LED_ORANGE);
         time_ms = csp_get_ms();
-        blink(K_LED_ORANGE);
-        temp = htu21d_read_temperature();
-        blink(K_LED_ORANGE);
-        hum = htu21d_read_humidity();
+        if ((++count % 30) == 0)
+        {
+            blink(K_LED_ORANGE);
+            temp = htu21d_read_temperature();
+            blink(K_LED_ORANGE);
+            hum = htu21d_read_humidity();
+            count = 1;
+        }
         if (bno_stat != I2C_OK)
         {
             blink(K_LED_RED);
             blink(K_LED_RED);
-            bno_stat = bno055_init(K_I2C1, OPERATION_MODE_NDOF);
+            bno_stat = bno055_setup(OPERATION_MODE_NDOF);
         }
         else
         {
 
             blink(K_LED_ORANGE);
-            get_position(&pos_vector);
-            // blink(K_LED_ORANGE);
-            // get_data_vector(VECTOR_ACCELEROMETER, &accel_vector);
-            // blink(K_LED_ORANGE);
-            // get_data_vector(VECTOR_MAGNETOMETER, &magn_vector);
+            quat_data = get_position();
             blink(K_LED_ORANGE);
-            get_data_vector(VECTOR_GYROSCOPE, &gyro_vector);
-            // blink(K_LED_ORANGE);
-            // get_data_vector(VECTOR_EULER, &eul_vector);
-            // blink(K_LED_ORANGE);
-            // get_data_vector(VECTOR_LINEARACCEL, &linear_vector);
-            // blink(K_LED_ORANGE);
-            // get_data_vector(VECTOR_GRAVITY, &gravity_vector);
+            eul_vector = get_data_vector(VECTOR_EULER);
         }
-        // sprintf(msg,"%d||%3.2f||%3.2f||%1.5f||%1.5f||%2.3f||%3.3f||%3.3f||%2.3f||%2.3f\r\n",
-        //     time_ms, temp, hum, pos_vector, accel_vector, magn_vector,
-        //     gyro_vector, eul_vector, linear_vector, gravity_vector
-        // );
-        sprintf(msg, "%d|%3.2f|%3.2f|%1.5f|%3.3f\r\n",
-            time_ms, temp, hum, pos_vector, gyro_vector
+        sprintf(msg, "%d|%3.2f|%3.2f|%.4f|%.4f|%.4f|%.4f|%f|%f|%f\r\n",
+            time_ms, temp, hum,
+            quat_data.w, quat_data.x, quat_data.y, quat_data.z,
+            eul_vector.x, eul_vector.y, eul_vector.z
         );
         k_uart_write(K_UART_CONSOLE, msg, strlen(msg));
         blink(K_LED_RED);
-        //vTaskDelay(1000);
     }
 }
 
