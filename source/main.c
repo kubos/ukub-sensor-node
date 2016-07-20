@@ -47,7 +47,7 @@ void task_sensors(void *p)
     bno055_quat_data_t quat_data;
     bno055_vector_data_t eul_vector;
     uint32_t time_ms;
-    static char msg[200];
+    static char msg[255];
     uint8_t count = 1;
 
     static KI2CStatus bno_stat;
@@ -87,7 +87,7 @@ void task_sensors(void *p)
             blink(K_LED_ORANGE);
             eul_vector = get_data_vector(VECTOR_EULER);
         }
-        sprintf(msg, "%d|%3.2f|%3.2f|%.4f|%.4f|%.4f|%.4f|%f|%f|%f\r\n",
+        sprintf(msg, "%d|%3.2f|%3.2f|%f|%f|%f|%f|%f|%f|%f\r\n",
             time_ms, temp, hum,
             quat_data.w, quat_data.x, quat_data.y, quat_data.z,
             eul_vector.x, eul_vector.y, eul_vector.z
