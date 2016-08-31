@@ -7,7 +7,15 @@
             "i2c_bus": "K_I2C1"
         }
     },
+    "fs": {
+    	"fatfs": {
+    		"driver": {
+    			"SDIO": {}
+    		}
+    	}
+    },
     "hardware": {
+    	"SDIO": {},
         "console": {
             "uart": "K_UART2",
             "baudRate": "115200"
