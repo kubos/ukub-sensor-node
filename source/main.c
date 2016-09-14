@@ -105,7 +105,7 @@ void displayCalStatus(void)
     }
 
 /* Display the individual values */
-    printf("S:\t%d\tG:\t%d\tA:\t%di\tM:\t%d\r\n",
+    printf("S:\t%d\tG:\t%d\tA:\t%d\tM:\t%d\r\n",
         calib.sys,
 		calib.gyro,
 		calib.accel,
