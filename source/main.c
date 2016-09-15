@@ -105,11 +105,11 @@ void displayCalStatus(void)
     }
 
 /* Display the individual values */
-    printf("S:\t%d\tG:\t%d %d|%d|%d\tA:\t%di\t%d|%d|%d|%d\tM:\t%d %d|%d|%d|%d\r\n",
+    printf("S:\t%d\tG:\t%d\tA:\t%d\tM:\t%d\r\n",
         calib.sys,
-		calib.gyro, offsets.gyro_offset_x, offsets.gyro_offset_y, offsets.gyro_offset_z,
-		calib.accel, offsets.accel_offset_x, offsets.accel_offset_y, offsets.accel_offset_z, offsets.accel_radius,
-		calib.mag, offsets.mag_offset_x, offsets.mag_offset_y, offsets.mag_offset_z, offsets.mag_radius
+		calib.gyro,
+		calib.accel,
+		calib.mag
     );
 }
 
@@ -148,7 +148,7 @@ uint16_t close_file(FIL * Fil)
 {
 	uint16_t ret;
 	ret = f_close(Fil);
-	printf("** Close RC: %d\r\n", ret);
+
 	return ret;
 }
 
@@ -353,6 +353,9 @@ void task_sensors(void *p)
     float hum = 0;
     bno055_quat_data_t quat_data;
     bno055_vector_data_t eul_vector;
+    bno055_vector_data_t grav_vector;
+    bno055_vector_data_t lin_vector;
+    bno055_vector_data_t acc_vector;
     uint32_t time_ms;
     static char msg[255];
     uint8_t count = 1;
@@ -386,6 +389,8 @@ void task_sensors(void *p)
             htu21d_read_temperature(&temp);
             blink(K_LED_ORANGE);
             htu21d_read_temperature(&temp);
+            blink(K_LED_ORANGE);
+            displayCalStatus();
 
 /* Check status of calibration */
             oldCount = calibCount;
@@ -428,8 +433,6 @@ void task_sensors(void *p)
  * Then print out the resulting data separated by bars.
  * Upon writing the string to the UART, the green LED will blink.
  */
-
-
         if (bno_stat != I2C_OK && bno_stat != SENSOR_NOT_CALIBRATED)
         {
         	printf("** bno_stat = %d\r\n", bno_stat);
@@ -445,15 +448,22 @@ void task_sensors(void *p)
             bno055_get_position(&quat_data);
             blink(K_LED_ORANGE);
             bno055_get_data_vector(VECTOR_EULER, &eul_vector);
+            blink(K_LED_ORANGE);
+            bno055_get_data_vector(VECTOR_GRAVITY, &grav_vector);
+            blink(K_LED_ORANGE);
+            bno055_get_data_vector(VECTOR_LINEARACCEL, &lin_vector);
+            blink(K_LED_ORANGE);
+            bno055_get_data_vector(VECTOR_ACCELEROMETER, &acc_vector);
 
         }
 
-        displayCalStatus();
-
-        sprintf(msg, "%d|%3.2f|%3.2f|%f|%f|%f|%f|%f|%f|%f\r\n",
+        sprintf(msg, "%d|%3.2f|%3.2f|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f\r\n",
             time_ms, temp, hum,
             quat_data.w, quat_data.x, quat_data.y, quat_data.z,
-            eul_vector.x, eul_vector.y, eul_vector.z
+            eul_vector.x, eul_vector.y, eul_vector.z,
+            grav_vector.x, grav_vector.y, grav_vector.z,
+            lin_vector.x, lin_vector.y, lin_vector.z,
+            acc_vector.x, acc_vector.y, acc_vector.z
         );
         k_uart_write(K_UART_CONSOLE, msg, strlen(msg));
         blink(K_LED_GREEN);
