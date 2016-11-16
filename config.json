@@ -10,12 +10,12 @@
     "fs": {
     	"fatfs": {
     		"driver": {
-    			"SDIO": {}
+    			"SDIO": true
     		}
     	}
     },
     "hardware": {
-    	"SDIO": {},
+    	"SDIO": true,
         "console": {
             "uart": "K_UART2",
             "baudRate": "57600"
@@ -23,6 +23,12 @@
         "uartDefaults": {
             "txQueueLen": 128,
             "rxQueueLen": 128
+        }
+    },
+    "telemetry": {
+        "csp_address": 1,
+        "aggregator": {
+            "interval": 100
         }
     }
 }

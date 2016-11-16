@@ -11,6 +11,7 @@
   "license": "Apache-2.0",
   "bin" : "./source",
   "dependencies": {
-      "kubos-rt" : "kubostech/kubos-rt#~0.1.0"
+      "telemetry-aggregator" : "kubostech/telemetry-aggregator",
+      "kubos-rt": "kubostech/kubos-rt"
   }
 }
