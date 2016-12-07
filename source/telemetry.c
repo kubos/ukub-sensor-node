@@ -1,8 +1,24 @@
+/*
+ * Copyright (C) 2016 Kubos Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "misc.h"
 #include <kubos-core/modules/sensors/htu21d.h>
 #include <kubos-core/modules/sensors/bno055.h>
-#include <telemetry-aggregator/aggregator.h>
 #include <kubos-hal/gpio.h>
+#include <telemetry/destinations.h>
+#include <telemetry-aggregator/aggregator.h>
 
 
 /* Setup telemetry sources */
@@ -89,13 +105,18 @@ static void bno_aggregator()
     csp_mutex_unlock(&bno_lock);
 }
 
-
+//TODO: Get rid of the dummy telemetry aggregator that's used for testing only.
+void dummy_aggregator() {
+    telemetry_source dummy = { .source_id = 0, .dest_flag = TELEMETRY_BEACON_FLAG};
+    aggregator_submit(dummy, 77);
+}
 /**
  * Implementing user_aggregator function defined by telemetry-aggregator module.
  * This function is defined in <telemetry-aggregator/aggregator.h>
  */
 void user_aggregator()
 {
-    htu_aggregator();
-    bno_aggregator();
+    //htu_aggregator();
+    //bno_aggregator();
+    dummy_aggregator();
 }
