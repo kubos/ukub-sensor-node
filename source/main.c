@@ -22,11 +22,11 @@
 
 #include <kubos-hal/gpio.h>
 #include <kubos-hal/uart.h>
-#include <telemetry/destinations.h>
+#include <telemetry/config.h>
 #include <telemetry-aggregator/aggregator.h>
 
 //TODO: Move this to the config file
-#define OUTPUT_ADDRESS 3
+#define OUTPUT_ADDRESS 1
 
 static csp_iface_t csp_if_kiss;
 static csp_kiss_handle_t csp_kiss_driver;
@@ -49,45 +49,29 @@ void csp_uart_sender(void *p) {
     csp_listen(sock, 10);
 
     /* Pointer to current connection and packet */
-    csp_conn_t *incoming_connection; //the incoming connection from Telemetry
-    csp_conn_t *outgoing_connection; //the outgoing connection over UART
-    csp_packet_t *packet;
-    telemetry_packet* t_packet;
+    /*csp_conn_t *incoming_connection; //the incoming connection from Telemetry*/
+    /*csp_conn_t *outgoing_connection; //the outgoing connection over UART*/
+    csp_packet_t* packet;
+    telemetry_packet test_packet;
+    /*incoming_connection = csp_connect(CSP_PRIO_NORM, TELEMETRY_CSP_ADDRESS, TELEMETRY_CSP_PORT, 100, CSP_O_NONE);*/
+    uint8_t mask = 0xFF;
+    telemetry_conn tel_conn;
+    while (!telemetry_subscribe(&tel_conn, mask))
+    {
+        csp_sleep_ms(500);
+    }
+
 
     /* Process incoming connections */
-    while (1) {
-
-        /* Wait for connection, 100 ms timeout */
-        if ((incoming_connection = csp_accept(sock, 100)) == NULL)
-            continue;
-
-        /* Read packets. Timout is 100 ms */
-        while ((packet = csp_read(incoming_connection, 100)) != NULL) {
-            switch (csp_conn_dport(incoming_connection)) {
-                //This is a switch in case we want to use one of the other ports in the future
-                case TELEMETRY_HEALTH_PORT:
-                    blink(K_LED_BLUE);
-                    outgoing_connection = csp_connect(CSP_PRIO_NORM, OUTPUT_ADDRESS, TELEMETRY_BEACON_PORT, 100, CSP_O_NONE);
-                    if (outgoing_connection == NULL) {
-                        /* Connect failed */
-                        /* Remember to free packet buffer */
-                        csp_buffer_free(packet);
-                        return;
-                    }
-                    /* Send packet */
-                    if (!csp_send(outgoing_connection, packet, 100)) {
-                        /* Send failed */
-                        blink(K_LED_RED);
-                    }
-                    csp_buffer_free(packet);
-                    break;
-            }
-        }
+     while (1) {
+         if(telemetry_read(tel_conn, &test_packet)) {
+             printf("This is working");
+         }
+     }
 
         /* Close current connection, and handle next */
-        csp_close(incoming_connection);
-        csp_close(outgoing_connection);
-    }
+        /*csp_close(incoming_connection);*/
+        /*csp_close(outgoing_connection);*/
 }
 
 
@@ -95,17 +79,18 @@ void local_usart_rx(uint8_t * buf, int len, void * pxTaskWoken) {
     csp_kiss_rx(&csp_if_kiss, buf, len, pxTaskWoken);
 }
 
+
 /* ------------ */
 /*     Main     */
 /* ------------ */
 int main(void) {
-    k_uart_console_init();
+    /*k_uart_console_init();*/
     /* Do all of the CSP setup things*/
-    struct usart_conf conf;
-    char dev = (char)K_UART6;
-    conf.device = &dev;
-    conf.baudrate = K_UART_CONSOLE_BAUDRATE;
-    usart_init(&conf);
+    /*struct usart_conf conf;*/
+    /*char dev = (char)K_UART6;*/
+    /*conf.device = &dev;*/
+    /*conf.baudrate = K_UART_CONSOLE_BAUDRATE;*/
+    /*usart_init(&conf);*/
 
     k_gpio_init(K_LED_GREEN, K_GPIO_OUTPUT, K_GPIO_PULL_NONE);
     k_gpio_init(K_LED_ORANGE, K_GPIO_OUTPUT, K_GPIO_PULL_NONE);
@@ -113,32 +98,46 @@ int main(void) {
     k_gpio_init(K_LED_BLUE, K_GPIO_OUTPUT, K_GPIO_PULL_NONE);
 
     /* init kiss interface */
-    csp_kiss_init(&csp_if_kiss, &csp_kiss_driver, usart_putc, usart_insert, "KISS");
+    /*csp_kiss_init(&csp_if_kiss, &csp_kiss_driver, usart_putc, usart_insert, "KISS");*/
 
     /* Setup callback from USART RX to KISS RS */
     /* This is needed if we use CSP's RDP packets - Otherwise we don't need it as we're only sending, not receiving packets */
-    usart_set_callback(local_usart_rx);
+    /*usart_set_callback(local_usart_rx);*/
 
     /*set the output_address route to use the kiss interface */
-    csp_route_set(OUTPUT_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
+    /*csp_route_set(OUTPUT_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);*/
 
     /**
      * Init CSP bits for telemetry to use - Wrap this up somewhere
      */
-    csp_buffer_init(5, 20);
-    csp_init(TELEMETRY_CSP_ADDRESS);
-    csp_route_start_task(50, 1);
+    /*csp_buffer_init(5, 20);*/
+    /*csp_init(TELEMETRY_CSP_ADDRESS);*/
+    /*csp_route_start_task(50, 1);*/
+
+    telemetry_init();
 
     /* Init telemetry-aggregator thread */
     INIT_AGGREGATOR_THREAD;
-
     /* Init calibration thread */
     csp_thread_handle_t calib_handle;
-    csp_thread_create(calibrate_thread, "CALIBRATE", 1024, NULL, 0, &calib_handle);
+    /*csp_thread_create(calibrate_thread, "CALIBRATE", 1024, NULL, 0, &calib_handle);*/
     /* Init the csp -> uart thread */
-    csp_thread_create(csp_uart_sender, "CSP_SENDER", 1024, NULL, 0, NULL);
+    csp_thread_handle_t handle_csp_uart_sender;
+    csp_thread_create(csp_uart_sender, "CSP_SENDER", 1000, NULL, 0, &handle_csp_uart_sender);
 
     vTaskStartScheduler();
+    while (1) {
+        csp_sleep_ms(100000);
+    }
 
     return 0;
+}
+
+
+void vApplicationStackOverflowHook( TaskHandle_t xTask, signed char *pcTaskName ){
+    int size = 1;
+    while(1){
+        size++;
+        size--;
+    }
 }

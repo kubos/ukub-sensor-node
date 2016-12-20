@@ -38,6 +38,7 @@
         "csp_address": 1,
         "aggregator": {
             "interval": 1000
-        }
+        },
+        "subscribers_num": 1
     }
 }
