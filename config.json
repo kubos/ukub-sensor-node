@@ -39,6 +39,7 @@
         "aggregator": {
             "interval": 1000
         },
-        "subscribers_num": 1
+        "subscribers_num": 1,
+        "log_node_address": 3
     }
 }

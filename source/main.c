@@ -25,8 +25,7 @@
 #include <telemetry/config.h>
 #include <telemetry-aggregator/aggregator.h>
 
-//TODO: Move this to the config file
-#define OUTPUT_ADDRESS 3
+#define LOG_NODE_ADDRESS YOTTA_CFG_TELEMETRY_LOG_NODE_ADDRESS
 
 static csp_iface_t csp_if_kiss;
 static csp_kiss_handle_t csp_kiss_driver;
@@ -35,8 +34,6 @@ static csp_kiss_handle_t csp_kiss_driver;
 /* ---------------------- */
 /* telemetry => UART task */
 /* ---------------------- */
-//TODO: Put this function somewhere else
-//TODO: Come up with a better name for this function
 void csp_uart_sender(void *p)
 {
 
@@ -71,7 +68,7 @@ void csp_uart_sender(void *p)
             {
                 memcpy(csp_packet->data, &read_packet, sizeof(telemetry_packet));
                 csp_packet->length = sizeof(telemetry_packet);
-                output_connection = csp_connect(CSP_PRIO_NORM, OUTPUT_ADDRESS, TELEMETRY_CSP_PORT, 100, CSP_O_NONE);
+                output_connection = csp_connect(CSP_PRIO_NORM, LOG_NODE_ADDRESS, TELEMETRY_CSP_PORT, 100, CSP_O_NONE);
 
                 if (output_connection != NULL)
                 {
@@ -117,7 +114,7 @@ int main(void) {
     usart_set_callback(local_usart_rx);
 
     /*set the output_address route to use the kiss interface */
-    csp_route_set(OUTPUT_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
+    csp_route_set(LOG_NODE_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
 
     /**
      * Init CSP bits for telemetry to use - Wrap this up somewhere
