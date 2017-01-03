@@ -72,21 +72,21 @@ void displayCalStatus(void)
  */
 
     bno055_calibration_data_t calib;
-	KSensorStatus status;
+    KSensorStatus status;
 
     status = bno055_get_calibration(&calib);
 
     if( status != SENSOR_OK)
     {
-    	printf("** Couldn't get calibration values! Status=%d\r\n", status);
+        printf("** Couldn't get calibration values! Status=%d\r\n", status);
     }
 
 /* Display the individual values */
     printf("S:\t%d\tG:\t%d\tA:\t%d\tM:\t%d\r\n",
         calib.sys,
-		calib.gyro,
-		calib.accel,
-		calib.mag
+        calib.gyro,
+        calib.accel,
+        calib.mag
     );
 }
 
@@ -100,48 +100,48 @@ void displayCalStatus(void)
 KSensorStatus load_calibration(void)
 {
 
-	KSensorStatus ret = SENSOR_ERROR;
-	static FATFS FatFs;
-	static FIL Fil;
-	uint16_t sd_stat = FR_OK;
+    KSensorStatus ret = SENSOR_ERROR;
+    static FATFS FatFs;
+    static FIL Fil;
+    uint16_t sd_stat = FR_OK;
 
 /* Mount the file system if needed. */
-	if(!offsets_set)
-	{
-		sd_stat = f_mount(&FatFs, "", 1);
-	}
+    if(!offsets_set)
+    {
+        sd_stat = f_mount(&FatFs, "", 1);
+    }
 
-	offsets_set = false;
+    offsets_set = false;
 
-	if(sd_stat == FR_OK)
-	{
+    if(sd_stat == FR_OK)
+    {
 /* Open the calibration file */
-		if((sd_stat = open_file(&Fil, FA_READ | FA_OPEN_EXISTING)) == FR_OK)
-		{
-			sd_stat = read_value(&Fil, &offsets.accel_offset_x);
-			sd_stat |= read_value(&Fil, &offsets.accel_offset_y);
-			sd_stat |= read_value(&Fil, &offsets.accel_offset_z);
-			sd_stat |= read_value(&Fil, &offsets.accel_radius);
+        if((sd_stat = open_file(&Fil, FA_READ | FA_OPEN_EXISTING)) == FR_OK)
+        {
+            sd_stat = read_value(&Fil, &offsets.accel_offset_x);
+            sd_stat |= read_value(&Fil, &offsets.accel_offset_y);
+            sd_stat |= read_value(&Fil, &offsets.accel_offset_z);
+            sd_stat |= read_value(&Fil, &offsets.accel_radius);
 
-			sd_stat |= read_value(&Fil, &offsets.gyro_offset_x);
-			sd_stat |= read_value(&Fil, &offsets.gyro_offset_y);
-			sd_stat |= read_value(&Fil, &offsets.gyro_offset_z);
+            sd_stat |= read_value(&Fil, &offsets.gyro_offset_x);
+            sd_stat |= read_value(&Fil, &offsets.gyro_offset_y);
+            sd_stat |= read_value(&Fil, &offsets.gyro_offset_z);
 
-			sd_stat |= read_value(&Fil, &offsets.mag_offset_x);
-			sd_stat |= read_value(&Fil, &offsets.mag_offset_y);
-			sd_stat |= read_value(&Fil, &offsets.mag_offset_z);
-			sd_stat |= read_value(&Fil, &offsets.mag_radius);
+            sd_stat |= read_value(&Fil, &offsets.mag_offset_x);
+            sd_stat |= read_value(&Fil, &offsets.mag_offset_y);
+            sd_stat |= read_value(&Fil, &offsets.mag_offset_z);
+            sd_stat |= read_value(&Fil, &offsets.mag_radius);
 
-			if(sd_stat == FR_OK)
-			{
-				//printf("** Loaded calibration from SD card\r\n");
-				offsets_set = true;
-			}
+            if(sd_stat == FR_OK)
+            {
+                //printf("** Loaded calibration from SD card\r\n");
+                offsets_set = true;
+            }
 
-			sd_stat = close_file(&Fil);
+            sd_stat = close_file(&Fil);
 
-		}
-	}
+        }
+    }
 
 /** 
  * The code is set to provide default calibration values three primary 
@@ -149,32 +149,32 @@ KSensorStatus load_calibration(void)
  * magnetometer, plus a radius value for the accelerometer and magnetometer).
  */
 
-	if(!offsets_set)
-	{
-		//printf("** Loading default calibration values\r\n");
+    if(!offsets_set)
+    {
+        //printf("** Loading default calibration values\r\n");
 
 /* Load values into offset structure */
-		offsets.accel_offset_x = 65530;
-		offsets.accel_offset_y = 81;
-		offsets.accel_offset_z = 27;
-		offsets.accel_radius = 1000;
+        offsets.accel_offset_x = 65530;
+        offsets.accel_offset_y = 81;
+        offsets.accel_offset_z = 27;
+        offsets.accel_radius = 1000;
 
-		offsets.gyro_offset_x = 0;
-		offsets.gyro_offset_y = 0;
-		offsets.gyro_offset_z = 0;
+        offsets.gyro_offset_x = 0;
+        offsets.gyro_offset_y = 0;
+        offsets.gyro_offset_z = 0;
 
-		offsets.mag_offset_x = 65483;
-		offsets.mag_offset_y = 5;
-		offsets.mag_offset_z = 76;
-		offsets.mag_radius = 661;
+        offsets.mag_offset_x = 65483;
+        offsets.mag_offset_y = 5;
+        offsets.mag_offset_z = 76;
+        offsets.mag_radius = 661;
 
-		offsets_set= true;
-	}
+        offsets_set= true;
+    }
 
 /* Set the values */
-	ret = bno055_set_sensor_offset_struct(offsets);
+    ret = bno055_set_sensor_offset_struct(offsets);
 
-	return ret;
+    return ret;
 }
 
 
@@ -185,34 +185,34 @@ KSensorStatus load_calibration(void)
 
 void save_calibration(bno055_offsets_t calib)
 {
-	static FATFS FatFs;
-	static FIL Fil;
-	uint16_t sd_stat = FR_OK;
+    static FATFS FatFs;
+    static FIL Fil;
+    uint16_t sd_stat = FR_OK;
 
 /* Open calibration file */
-	if((sd_stat = open_file(&Fil, FA_WRITE | FA_OPEN_ALWAYS)) == FR_OK)
-	{
-		sd_stat = write_value(&Fil, calib.accel_offset_x);
-		sd_stat |= write_value(&Fil, calib.accel_offset_y);
-		sd_stat |= write_value(&Fil, calib.accel_offset_z);
-		sd_stat |= write_value(&Fil, calib.accel_radius);
+    if((sd_stat = open_file(&Fil, FA_WRITE | FA_OPEN_ALWAYS)) == FR_OK)
+    {
+        sd_stat = write_value(&Fil, calib.accel_offset_x);
+        sd_stat |= write_value(&Fil, calib.accel_offset_y);
+        sd_stat |= write_value(&Fil, calib.accel_offset_z);
+        sd_stat |= write_value(&Fil, calib.accel_radius);
 
-		sd_stat |= write_value(&Fil, calib.gyro_offset_x);
-		sd_stat |= write_value(&Fil, calib.gyro_offset_y);
-		sd_stat |= write_value(&Fil, calib.gyro_offset_z);
+        sd_stat |= write_value(&Fil, calib.gyro_offset_x);
+        sd_stat |= write_value(&Fil, calib.gyro_offset_y);
+        sd_stat |= write_value(&Fil, calib.gyro_offset_z);
 
-		sd_stat |= write_value(&Fil, calib.mag_offset_x);
-		sd_stat |= write_value(&Fil, calib.mag_offset_y);
-		sd_stat |= write_value(&Fil, calib.mag_offset_z);
-		sd_stat |= write_value(&Fil, calib.mag_radius);
+        sd_stat |= write_value(&Fil, calib.mag_offset_x);
+        sd_stat |= write_value(&Fil, calib.mag_offset_y);
+        sd_stat |= write_value(&Fil, calib.mag_offset_z);
+        sd_stat |= write_value(&Fil, calib.mag_radius);
 
-		if(sd_stat == FR_OK)
-		{
-			//printf("** Saved calibration to SD card\r\n");
-		}
+        if(sd_stat == FR_OK)
+        {
+            //printf("** Saved calibration to SD card\r\n");
+        }
 
-		close_file(&Fil);
-	}
+        close_file(&Fil);
+    }
 }
 
 CSP_DEFINE_TASK(calibrate_thread)

@@ -6,7 +6,8 @@
        "uart_bus": "K_UART6",
        "usart": {
        },
-       "rdp" : true
+       "rdp" : true,
+       "log_node_address": 3
    },
     "sensors": {
         "htu21d": {
@@ -39,7 +40,6 @@
         "aggregator": {
             "interval": 1000
         },
-        "subscribers_num": 1,
-        "log_node_address": 3
+        "subscribers_num": 1
     }
 }

@@ -25,7 +25,8 @@
 #include <telemetry/config.h>
 #include <telemetry-aggregator/aggregator.h>
 
-#define LOG_NODE_ADDRESS YOTTA_CFG_TELEMETRY_LOG_NODE_ADDRESS
+#define LOG_NODE_ADDRESS YOTTA_CFG_CSP_LOG_NODE_ADDRESS
+#define LOG_NODE_PORT YOTTA_CFG_CSP_PORT
 
 static csp_iface_t csp_if_kiss;
 static csp_kiss_handle_t csp_kiss_driver;
@@ -50,29 +51,29 @@ void csp_uart_sender(void *p)
     csp_conn_t *output_connection; //the outgoing connection over UART
     csp_packet_t* csp_packet;
     telemetry_packet read_packet;
-    uint8_t mask = 0xFF;
     telemetry_conn tel_conn;
-    while (!telemetry_subscribe(&tel_conn, mask))
+    while (!telemetry_subscribe(&tel_conn, 0x0)) // Subscribe to all telemetry publishers
     {
         csp_sleep_ms(500);
     }
 
-    /* Process incoming connections */
      while (1)
      {
          if(telemetry_read(tel_conn, &read_packet))
+         /* A packet has been read in from telemetry */
          {
-            /* A packet has been read in from telemetry */
             csp_packet = csp_buffer_get(20);
             if (csp_packet != NULL)
             {
                 memcpy(csp_packet->data, &read_packet, sizeof(telemetry_packet));
                 csp_packet->length = sizeof(telemetry_packet);
-                output_connection = csp_connect(CSP_PRIO_NORM, LOG_NODE_ADDRESS, TELEMETRY_CSP_PORT, 100, CSP_O_NONE);
+                output_connection = csp_connect(CSP_PRIO_NORM, LOG_NODE_ADDRESS, LOG_NODE_PORT, 100, CSP_O_NONE);
 
                 if (output_connection != NULL)
                 {
                     csp_send(output_connection, csp_packet, 100);
+                    blink(K_LED_RED);
+                    blink(K_LED_BLUE);
                     csp_buffer_free(csp_packet);
                 }
             }
@@ -98,7 +99,7 @@ int main(void) {
     struct usart_conf conf;
     char dev = (char)K_UART6;
     conf.device = &dev;
-    conf.baudrate = K_UART_CONSOLE_BAUDRATE;
+    conf.baudrate = K_UART_CONSOLE_BAUDRATE; //57600
     usart_init(&conf);
 
     k_gpio_init(K_LED_GREEN, K_GPIO_OUTPUT, K_GPIO_PULL_NONE);
@@ -113,23 +114,16 @@ int main(void) {
     /* This is needed if we use CSP's RDP packets - Otherwise we don't need it as we're only sending, not receiving packets */
     usart_set_callback(local_usart_rx);
 
-    /*set the output_address route to use the kiss interface */
-    csp_route_set(LOG_NODE_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
-
-    /**
-     * Init CSP bits for telemetry to use - Wrap this up somewhere
-     */
-    csp_buffer_init(5, 20);
-    csp_init(TELEMETRY_CSP_ADDRESS);
-    csp_route_start_task(50, 1);
-
     telemetry_init();
+    csp_route_set(LOG_NODE_ADDRESS, &csp_if_kiss, CSP_NODE_MAC);
 
     /* Init telemetry-aggregator thread */
     INIT_AGGREGATOR_THREAD;
+
     /* Init calibration thread */
     csp_thread_handle_t calib_handle;
-    /*csp_thread_create(calibrate_thread, "CALIBRATE", 1024, NULL, 0, &calib_handle);*/
+    csp_thread_create(calibrate_thread, "CALIBRATE", 1024, NULL, 0, &calib_handle);
+
     /* Init the csp -> uart thread */
     csp_thread_handle_t handle_csp_uart_sender;
     csp_thread_create(csp_uart_sender, "CSP_SENDER", 1000, NULL, 0, &handle_csp_uart_sender);
