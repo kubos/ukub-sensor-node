@@ -1,9 +1,10 @@
 {
    "CSP": {
-       "my_address": "1",
-       "target_address": "1",
-       "port": "10",
+       "my_address": 1,
+       "target_address": 1,
+       "port": 10,
        "uart_bus": "K_UART6",
+       "baudrate": 57600, 
        "usart": {
        },
        "rdp" : true,
@@ -28,7 +29,7 @@
         "SDIO": true,
         "console": {
             "uart": "K_UART2",
-            "baudRate": "57600"
+            "baudRate": 57600
         },
         "uartDefaults": {
             "txQueueLen": 128,

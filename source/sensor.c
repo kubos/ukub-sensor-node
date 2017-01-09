@@ -81,7 +81,7 @@ void displayCalStatus(void)
         printf("** Couldn't get calibration values! Status=%d\r\n", status);
     }
 
-/* Display the individual values */
+    /* Display the individual values */
     printf("S:\t%d\tG:\t%d\tA:\t%d\tM:\t%d\r\n",
         calib.sys,
         calib.gyro,
@@ -105,7 +105,7 @@ KSensorStatus load_calibration(void)
     static FIL Fil;
     uint16_t sd_stat = FR_OK;
 
-/* Mount the file system if needed. */
+    /* Mount the file system if needed. */
     if(!offsets_set)
     {
         sd_stat = f_mount(&FatFs, "", 1);
@@ -115,7 +115,7 @@ KSensorStatus load_calibration(void)
 
     if(sd_stat == FR_OK)
     {
-/* Open the calibration file */
+        /* Open the calibration file */
         if((sd_stat = open_file(&Fil, FA_READ | FA_OPEN_EXISTING)) == FR_OK)
         {
             sd_stat = read_value(&Fil, &offsets.accel_offset_x);
@@ -153,7 +153,7 @@ KSensorStatus load_calibration(void)
     {
         //printf("** Loading default calibration values\r\n");
 
-/* Load values into offset structure */
+        /* Load values into offset structure */
         offsets.accel_offset_x = 65530;
         offsets.accel_offset_y = 81;
         offsets.accel_offset_z = 27;
@@ -171,7 +171,7 @@ KSensorStatus load_calibration(void)
         offsets_set= true;
     }
 
-/* Set the values */
+    /* Set the values */
     ret = bno055_set_sensor_offset_struct(offsets);
 
     return ret;
@@ -189,7 +189,7 @@ void save_calibration(bno055_offsets_t calib)
     static FIL Fil;
     uint16_t sd_stat = FR_OK;
 
-/* Open calibration file */
+    /* Open calibration file */
     if((sd_stat = open_file(&Fil, FA_WRITE | FA_OPEN_ALWAYS)) == FR_OK)
     {
         sd_stat = write_value(&Fil, calib.accel_offset_x);
