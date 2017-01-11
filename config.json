@@ -1,4 +1,15 @@
 {
+   "CSP": {
+       "my_address": 1,
+       "target_address": 1,
+       "port": 10,
+       "uart_bus": "K_UART6",
+       "baudrate": 57600, 
+       "usart": {
+       },
+       "rdp" : true,
+       "log_node_address": 3
+   },
     "sensors": {
         "htu21d": {
             "i2c_bus": "K_I2C1"
@@ -8,21 +19,29 @@
         }
     },
     "fs": {
-    	"fatfs": {
-    		"driver": {
-    			"SDIO": {}
-    		}
-    	}
+        "fatfs": {
+            "driver": {
+                "SDIO": true
+            }
+        }
     },
     "hardware": {
-    	"SDIO": {},
+        "SDIO": true,
         "console": {
             "uart": "K_UART2",
-            "baudRate": "57600"
+            "baudRate": 57600
         },
         "uartDefaults": {
             "txQueueLen": 128,
             "rxQueueLen": 128
         }
+    },
+    "telemetry": {
+        "csp_address": 1,
+        "aggregator": {
+            "interval": 1000
+        },
+        "subscribers_num": 1,
+        "subscribers_read_attempts": 5
     }
 }
